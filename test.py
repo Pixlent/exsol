@@ -75,13 +75,13 @@ def pretty_index(num: int, length: int):
     return pretty
 
 
-# Returns true if the check passes, false otherwise
-def check_answer(test: Test) -> tuple[bool, None | str]:
+# Returns true if the check passes, false otherwise. bool, answer, err
+def check_answer(test: Test) -> tuple[bool, Decimal | None, str | None]:
     result, err = SOLVE_EXPRESSION(test.expression)
 
-    if err and err == test.answer[1]: return True, err
-
-    return result == test.answer[0], None
+    if err and err == test.answer[1]: return True, None, err # Passed, there is supposed to be an error, and they match
+    if result == None: return False, None, err                   # Not passed, there's no result, therefore an error
+    return result == test.answer[0], result, None            # Passes if the result matches the key answer
 
 def test():
     tests = import_list()
@@ -91,7 +91,7 @@ def test():
 
     for index, test in enumerate(tests):
         test_number = pretty_index(index + 1, len(str(total_tests)))
-        passes, err = check_answer(test)
+        passes, result, err = check_answer(test)
 
         if passes:
             tests_passed += 1
@@ -99,7 +99,7 @@ def test():
         else:
             print(f"{BACK_RED}[{test_number}. Test failed]{RESET} Category: {test.description}{RESET}")
             print(f"|   {TEXT_YELLOW}{test.expression} != {TEXT_RED}{test.answer[0]} {TEXT_RED}{RESET}")
-            print(f"|   {TEXT_RED}{err}{RESET}")
+            print(f"|   {TEXT_RED}{result} : {err}{RESET}")
 
     percent_passed = pretty_percent(tests_passed, total_tests)
 

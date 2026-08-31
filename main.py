@@ -1,7 +1,9 @@
-from decimal import Decimal
+from collections.abc import Callable
+from decimal import Decimal, InvalidOperation
+from typing import NamedTuple
 import math
 
-def tokenize(input: str) -> list[str]:
+def tokenize(input: str)-> tuple[list[str] | None, str | None]:
     buffer = ""
     tokens: list[str] = []
 
@@ -17,7 +19,7 @@ def tokenize(input: str) -> list[str]:
             tokens.append(char)
     if buffer:
         tokens.append(buffer)
-    return tokens
+    return tokens, None
 
 def print_tokens(tokens: list[str]):
     print("\033[31m=\033[0m", end="")
@@ -25,76 +27,142 @@ def print_tokens(tokens: list[str]):
         print(f"\033[31m{token} \033[0m", end="")
     print()
 
-def calculate(operator: str, left: Decimal, right: Decimal) -> tuple[Decimal | None, str | None]:
-    if operator == "^": return left ** right, None
-    if operator == "*": return left * right, None
-    if operator == "+": return left + right, None
-    if operator == "-": return left - right, None
-    if operator == "%": return left % right, None
-    if operator == "/" and right == 0: return None, "Can't divide by zero"
-    if operator == "/": return left / right, None
-    return None, "Error occured while calculating"
+class Operator(NamedTuple):
+    precedence: int
+    associativity: str # 'L' or 'R'
+    func: Callable[[list[Decimal]], str | None]
+    arity: int = 2  # 1 for unary, 2 for binary and so on
 
-def reduce_operators(tokens: list[str], operators: list[str]) -> str | None:
-    index = 0;
-    while index < tokens.__len__():
-        token = tokens[index]
-        index += 1
-        for operator in operators:
-            if token == operator:
-                index -= 1
-                result, err = calculate(operator, Decimal(tokens[index-1]), Decimal(tokens[index+1]))
+def add(stack: list[Decimal]) -> str | None:
+    right = stack.pop()
+    left = stack.pop()
+
+    stack.append(left + right)
+    return None
+
+def sub(stack: list[Decimal]) -> str | None:
+    right = stack.pop()
+    left = stack.pop()
+
+    stack.append(left - right)
+    return None
+
+def mul(stack: list[Decimal]) -> str | None:
+    right = stack.pop()
+    left = stack.pop()
+
+    stack.append(left * right)
+    return None
+
+def div(stack: list[Decimal]) -> str | None:
+    right = stack.pop()
+    left = stack.pop()
+
+    if right == 0: return "Cannot divide by zero"
+
+    stack.append(left / right)
+    return None
+
+def mod(stack: list[Decimal]) -> str | None:
+    right = stack.pop()
+    left = stack.pop()
+
+    if right == 0: return "Cannot divide by zero"
+
+    stack.append(left % right)
+    return None
+
+def pow(stack: list[Decimal]) -> str | None:
+    right = stack.pop()
+    left = stack.pop()
+
+    if left == 0 and right < 0: return "Zero raised a negative power is undefined behavior"
+    if left == right and left == 0:
+        stack.append(Decimal(1))
+        return None
+
+    stack.append(left ** right)
+    return None
+
+def fac(stack: list[Decimal]) -> str | None:
+    value = stack.pop()
+
+    stack.append(Decimal(math.gamma(value + 1)))
+    return None
+
+OPERATORS: dict[str, Operator] = {
+    "+": Operator(precedence=1, associativity="L", func=add),
+    "-": Operator(precedence=1, associativity="L", func=sub),
+    "*": Operator(precedence=2, associativity="L", func=mul),
+    "/": Operator(precedence=2, associativity="L", func=div),
+    "%": Operator(precedence=2, associativity="L", func=mod),
+    "^": Operator(precedence=3, associativity="R", func=pow),
+    "!": Operator(precedence=4, associativity="L", func=fac, arity=1),
+}
+
+def is_number(value: str) -> bool:
+    try:
+        _ = Decimal(value)
+        return True
+    except (InvalidOperation, TypeError):
+        return False
+
+def eval_expression(tokens: list[str]) -> tuple[Decimal | None, str | None]:
+    out: list[Decimal] = []
+    ops: list[str] = []
+
+    if ("(" in tokens and not ")" in tokens) or ("(" not in tokens and ")" in tokens):
+        return None, "Mismatched parentheses: expected a matching parenthesis"
+
+    for token in tokens:
+        if is_number(token):
+            out.append(Decimal(token))
+            continue
+
+        if token == "(": ops.append("(")
+        if token == ")":
+            for _ in range(len(ops)):
+                op = ops.pop()
+                if op == "(":
+                    break
+                err = OPERATORS[op].func(out)
                 if err:
-                    return err
-                tokens[index - 1] = str(result)
-                del tokens[index:index+2]
+                    return None, err
 
-def resolve_parentheses(tokens: list[str]) -> list[str]:
-    if "(" in tokens:
-        start = 0
-        depth = 0
-        index = 0
-        while index < len(tokens):
-            token = tokens[index]
-            if token == "(":
-                if depth == 0:
-                    start = index
-                    depth += 1
-                else: depth += 1
-            elif token == ")":
-                if depth == 1:
-                    result = evaluate_expression(tokens[start + 1:index])
-                    del tokens[start:index + 1]
-                    tokens[start:start] = result
-                    index = start
-                depth -= 1
-            index += 1;
+        if token in OPERATORS:
+            if len(ops) < 1 or ops[len(ops) - 1] == "(":
+                ops.append(token)
+                continue
 
-    return tokens
+            token_precedence = OPERATORS[token].precedence
+            stack_precedence = OPERATORS[ops[len(ops) - 1]].precedence
 
-def evaluate_expression(tokens: list[str]) -> list[str]:
-    tokens = resolve_parentheses(tokens)
+            if token_precedence > stack_precedence:
+                ops.append(token)
+                continue
+            if len(out) < OPERATORS[ops[len(ops) - 1]].arity:
+                return None, "Not a valid expression: too many operators or not enough numbers"
+            err = OPERATORS[ops.pop()].func(out)
+            if err:
+                return None, err
+            ops.append(token)
 
-    err1 = reduce_operators(tokens, ["^"])
-    err2 = reduce_operators(tokens, ["*", "/", "%"])
-    err3 = reduce_operators(tokens, ["+", "-"])
-
-    if err1:
-        return [err1]
-    if err2:
-        return [err2]
-    if err3:
-        return [err3]
-
-    # temp fix
-    if len(tokens) > 1:
-        tokens[0] = str(math.prod([Decimal(x) for x in tokens]))
-        del tokens[1:]
-
-    return tokens
+    for op in reversed(ops):
+        if op == "(" or op == ")":
+            return None, "Mismatched parentheses: expected a matching parenthesis"
+        if len(out) < OPERATORS[ops[len(ops) - 1]].arity:
+            return None, "Not a valid expression: too many operators or not enough numbers"
+        err = OPERATORS[op].func(out)
+        if err:
+            return None, err
+    if len(out) != 1: return None, "Failed to evaluate expression, less or more than one remaining result"
+    return out[0], None
 
 def solve_expression(expression: str) -> tuple[Decimal | None, str | None]:
-    tokens = tokenize(expression)
-    solved = evaluate_expression(tokens)
-
-    return Decimal(solved[0]), None
+    tokens, lex_error  = tokenize(expression)
+    if not tokens:
+        return None, lex_error
+    result, eval_error = eval_expression(tokens)
+    if result is None:
+        return None, eval_error
+    return result, None
