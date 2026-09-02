@@ -1,7 +1,7 @@
 from collections.abc import Callable
 from decimal import Decimal, InvalidOperation
 from operator import contains
-from typing import NamedTuple
+from typing import Any, NamedTuple
 import math
 
 SPECIAL_TOKENS = ["(", ")"]
@@ -121,6 +121,12 @@ def fac(stack: list[Decimal]) -> str | None:
     stack.append(Decimal(math.gamma(value + 1)))
     return None
 
+def neg(stack: list[Decimal]) -> str | None:
+    value = stack.pop()
+
+    stack.append(value * -1)
+    return None
+
 OPERATORS: dict[str, Operator] = {
     "+": Operator(precedence=1, associativity="L", func=add),
     "-": Operator(precedence=1, associativity="L", func=sub),
@@ -129,6 +135,7 @@ OPERATORS: dict[str, Operator] = {
     "%": Operator(precedence=2, associativity="L", func=mod),
     "^": Operator(precedence=3, associativity="R", func=pow),
     "!": Operator(precedence=4, associativity="L", func=fac, arity=1),
+    "_neg": Operator(precedence=3, associativity="R", func=neg, arity=1)
 }
 
 def is_number(value: str) -> bool:
@@ -144,6 +151,25 @@ def eval_expression(tokens: list[str]) -> tuple[Decimal | None, str | None]:
 
     if ("(" in tokens and not ")" in tokens) or ("(" not in tokens and ")" in tokens):
         return None, "Mismatched parentheses: expected a matching parenthesis"
+
+    if "-" in tokens:
+        for index, token in enumerate(reversed(tokens)):
+            if token == "-":
+                if index == len(tokens) -1:
+                    tokens[(len(tokens)-1)-index] = "_neg"
+                    continue
+                if tokens[len(tokens)-2-index] in OPERATORS or tokens[len(tokens)-2-index] == "(":
+                    tokens[(len(tokens)-1)-index] = "_neg"
+
+    if "+" in tokens:
+        for index, token in enumerate(reversed(tokens)):
+            if token == "+":
+                if index == len(tokens) -1:
+                    tokens[(len(tokens)-1)-index] = "_rem"
+                    continue
+                if tokens[len(tokens)-2-index] in OPERATORS or tokens[len(tokens)-2-index] == "(":
+                    tokens[(len(tokens)-1)-index] = "_rem"
+    tokens[:] = [token for token in tokens if token != "_rem"]
 
     for token in tokens:
         if is_number(token):
@@ -168,7 +194,8 @@ def eval_expression(tokens: list[str]) -> tuple[Decimal | None, str | None]:
             token_precedence = OPERATORS[token].precedence
             stack_precedence = OPERATORS[ops[len(ops) - 1]].precedence
 
-            if token_precedence > stack_precedence:
+
+            if (OPERATORS[token].associativity == "L" and token_precedence > stack_precedence) or (OPERATORS[token].associativity == "R" and token_precedence >= stack_precedence):
                 ops.append(token)
                 continue
             if len(out) < OPERATORS[ops[len(ops) - 1]].arity:

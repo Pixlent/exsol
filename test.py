@@ -105,7 +105,7 @@ def test():
         else:
             print(f"{BACK_RED}[{test_number}. Test failed]{RESET} Category: {test.description}{RESET}")
             print(f"|   {TEXT_YELLOW}{test.expression} != {TEXT_RED}{test.answer[0]} {TEXT_RED}{RESET}")
-            print(f"|   {TEXT_RED}{result} : {err}{RESET}")
+            print(f"|   {TEXT_RED}{result} is not correct, error: {err}{RESET}")
 
     percent_passed = pretty_percent(tests_passed, total_tests)
 
