@@ -1,22 +1,53 @@
 from collections.abc import Callable
 from decimal import Decimal, InvalidOperation
+from operator import contains
 from typing import NamedTuple
 import math
 
+SPECIAL_TOKENS = ["(", ")"]
+
+def is_valid_number(value: str) -> bool:
+    return is_number(value) or value == "."
+
 def tokenize(input: str)-> tuple[list[str] | None, str | None]:
+    input = input.strip()
+    if not input:
+        return None, "The input expression is empty"
+
     buffer = ""
     tokens: list[str] = []
 
     for char in input:
-        if char.isdigit() or char == "." or (buffer == "" and char == "-"):
-            buffer += char
-        elif char == "-" and buffer == "-":
-            buffer = ""
-        elif char == "+" or char == "-" or char == "*" or char == "/" or char == "^" or char == "%" or char == "(" or char == ")":
+        if char in OPERATORS or char in SPECIAL_TOKENS:
             if buffer:
                 tokens.append(buffer)
             buffer = ""
             tokens.append(char)
+            continue
+
+        if is_valid_number(char):
+            if is_valid_number(buffer):
+                if "." in buffer and char == ".":
+                    return None, "Multiple decimal points are not allowed"
+                buffer += char
+            else:
+                if buffer:
+                    tokens.append(buffer)
+                buffer = char
+            continue
+        elif char.isalpha() or char == "_":
+            if not is_valid_number(buffer):
+                buffer += char
+            else:
+                if buffer:
+                    tokens.append(buffer)
+                buffer = char
+            continue
+        elif char == " ":
+            continue
+        else:
+            return None, f"Unexpected token: {char}"
+
     if buffer:
         tokens.append(buffer)
     return tokens, None

@@ -167,7 +167,7 @@
 ((5 + 2) = Mismatched parentheses: expected a matching parenthesis
 5 / / 2 = Not a valid expression: too many operators or not enough numbers
 * * 5 = Not a valid expression: too many operators or not enough numbers
-5.5.5 + 1 = Not a valid expression: too many operators or not enough numbers
+5.5.5 + 1 = Multiple decimal points are not allowed
 5 ^ = Not a valid expression: too many operators or not enough numbers
 [Identity and Structural Edge Cases] 0 + 0 = 0
 0 - 0 = 0

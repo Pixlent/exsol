@@ -25,6 +25,21 @@ Passed all test cases!
 
 Reverse polish notation is an alternative to the infix notation we are used to. It doesn't require brackets and doesn't need to look ahead. It's sequential, making it easy for computers.
 
+The Single-Pop Precedence Bug is present (use a while loop, instead of if).
+
+Look at Djikstra's Two-stack algo and compare
+
+Rebuild the tokenizer, to be even dumber and include identifiers and such (for functions and variables.)
+
+Intended behavior for tokenizer:
+If operator, append operator and buffer
+If number and buffer is number, add number to buffer
+If number and buffer is identifier, append buffer and start a new buffer with that number
+If identifier and buffer is identifier, add identifier to buffer
+If identifier and buffer is identifier, append buffer and start a new buffer with that identifier
+If space, skip
+Otherwise error.
+
 (100 - 50) / (2 + 3) = 10
 
 OUT: 

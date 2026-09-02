@@ -77,11 +77,17 @@ def pretty_index(num: int, length: int):
 
 # Returns true if the check passes, false otherwise. bool, answer, err
 def check_answer(test: Test) -> tuple[bool, Decimal | None, str | None]:
-    result, err = SOLVE_EXPRESSION(test.expression)
+    try:
+        result, err = SOLVE_EXPRESSION(test.expression)
 
-    if err and err == test.answer[1]: return True, None, err # Passed, there is supposed to be an error, and they match
-    if result == None: return False, None, err                   # Not passed, there's no result, therefore an error
-    return result == test.answer[0], result, None            # Passes if the result matches the key answer
+        if err and err == test.answer[1]: return True, None, err # Passed, there is supposed to be an error, and they match
+        if result == None: return False, None, err                   # Not passed, there's no result, therefore an error
+        return result == test.answer[0], result, None            # Passes if the result matches the key answer
+    except Exception as e:
+        err = str(e)
+
+        if err: return False, None, err
+        else: return False, None, "Unknown exception"
 
 def test():
     tests = import_list()
@@ -95,7 +101,7 @@ def test():
 
         if passes:
             tests_passed += 1
-            print(f"[{test_number}. Test passed] {TEXT_YELLOW}{test.expression}{RESET} = {TEXT_GREEN}{test.answer[0]}{RESET}")
+            #print(f"[{test_number}. Test passed] {TEXT_YELLOW}{test.expression}{RESET} = {TEXT_GREEN}{test.answer[0]}{RESET}")
         else:
             print(f"{BACK_RED}[{test_number}. Test failed]{RESET} Category: {test.description}{RESET}")
             print(f"|   {TEXT_YELLOW}{test.expression} != {TEXT_RED}{test.answer[0]} {TEXT_RED}{RESET}")
