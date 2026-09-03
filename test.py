@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from decimal import Decimal, InvalidOperation
 
-from main import solve_expression
+from exsol import solve_expression
 
 SOLVE_EXPRESSION = solve_expression
 TEST_FILE = "tests.txt"
@@ -101,7 +101,7 @@ def test():
 
         if passes:
             tests_passed += 1
-            #print(f"[{test_number}. Test passed] {TEXT_YELLOW}{test.expression}{RESET} = {TEXT_GREEN}{test.answer[0]}{RESET}")
+            print(f"[{test_number}. Test passed] {TEXT_YELLOW}{test.expression}{RESET} = {TEXT_GREEN}{test.answer[0]}{RESET}")
         else:
             print(f"{BACK_RED}[{test_number}. Test failed]{RESET} Category: {test.description}{RESET}")
             print(f"|   {TEXT_YELLOW}{test.expression} != {TEXT_RED}{test.answer[0]} {TEXT_RED}{RESET}")

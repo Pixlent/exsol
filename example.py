@@ -1,7 +1,12 @@
-from main import solve_expression
+from exsol import solve_expression
 
-user_input = input("Please write an equation: \033[31m")
-answer, err = solve_expression(user_input)
+while True:
+    # Take input from the user
+    user_input = input("Please write an expression: \033[31m")
+    # Call the library to solve the expression
+    answer, err = solve_expression(user_input)
 
-if err: print(err)
-else: print(f"= {answer}")
+    # If the expression failed to solve, print the error
+    if err: print(f"{err}\033[0m")
+    # Else, print the answer
+    else: print(f"= {answer}\033[0m")

@@ -28,6 +28,7 @@ Reverse polish notation is an alternative to the infix notation we are used to. 
 The Single-Pop Precedence Bug is present (use a while loop, instead of if).
 
 Look at Djikstra's Two-stack algo and compare
+Shunting-yard Algorithm
 
 Rebuild the tokenizer, to be even dumber and include identifiers and such (for functions and variables.)
 
