@@ -12,8 +12,11 @@
 Archetecture:
 A function called "solve_expression" that returns an answer or an error detailing what went wrong. Optionally show how it solved it (what order and so on)
 We first tokenize the input string to make it easier to operate on. Here we also convert aliases, strip spaces and so on
-We then convert the list of tokens into reverse polish notation
-We then take the stack and evaluate it, solving the equation
+We validate the tokens to look for early errors
+We then use the shunting-yard algorhitm to turn the tokens into reverse polish notation
+We validate the out to look for errors and inconsistencies
+We then compute the new list
+We validate the out
 
 Test archetecture:
 We have a list of groups of tests. A group is a category of tests that gets executed.

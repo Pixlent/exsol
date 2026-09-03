@@ -4,6 +4,7 @@ from decimal import Decimal, InvalidOperation
 from typing import NamedTuple
 
 SPECIAL_TOKENS = ["(", ")"]
+ALLOW_IDENTIFIERS = False
 
 def is_valid_number(value: str) -> bool:
     return is_number(value) or value == "."
@@ -23,6 +24,10 @@ def tokenize(input: str)-> tuple[list[str] | None, str | None]:
             buffer = ""
             tokens.append(char)
             continue
+
+        if not ALLOW_IDENTIFIERS:
+            if char.isalpha(): return None, "Identifiers are not allowed in expressions"
+            if char == "_": continue
 
         if is_valid_number(char):
             if is_valid_number(buffer):
@@ -142,7 +147,7 @@ def eval_expression(tokens: list[str]) -> tuple[Decimal | None, str | None]:
     out: list[Decimal] = []
     ops: list[str] = []
 
-    if ("(" in tokens and not ")" in tokens) or ("(" not in tokens and ")" in tokens):
+    if tokens.count("(") != tokens.count(")"):
         return None, "Mismatched parentheses: expected a matching parenthesis"
 
     if "-" in tokens:
@@ -185,10 +190,10 @@ def eval_expression(tokens: list[str]) -> tuple[Decimal | None, str | None]:
                 continue
 
             token_precedence = OPERATORS[token].precedence
+            token_associativity = OPERATORS[token].associativity
             stack_precedence = OPERATORS[ops[len(ops) - 1]].precedence
 
-
-            if (OPERATORS[token].associativity == "L" and token_precedence > stack_precedence) or (OPERATORS[token].associativity == "R" and token_precedence >= stack_precedence):
+            if (token_associativity == "L" and token_precedence > stack_precedence) or (token_associativity == "R" and token_precedence >= stack_precedence):
                 ops.append(token)
                 continue
             if len(out) < OPERATORS[ops[len(ops) - 1]].arity:

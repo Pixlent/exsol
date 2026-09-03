@@ -6,6 +6,7 @@ from exsol import solve_expression
 SOLVE_EXPRESSION = solve_expression
 TEST_FILE = "tests.txt"
 PERCENT_DECIMAL = 2
+PRINT_SUCCESSFUL_TESTS = False
 
 RESET        = "\033[0m"
 BOLD         = "\033[1m"
@@ -101,11 +102,14 @@ def test():
 
         if passes:
             tests_passed += 1
-            print(f"[{test_number}. Test passed] {TEXT_YELLOW}{test.expression}{RESET} = {TEXT_GREEN}{test.answer[0]}{RESET}")
+            if PRINT_SUCCESSFUL_TESTS:
+                print(f"[{test_number}. Test passed] {TEXT_YELLOW}{test.expression}{RESET} = {TEXT_GREEN}{test.answer[0]}{RESET}")
         else:
-            print(f"{BACK_RED}[{test_number}. Test failed]{RESET} Category: {test.description}{RESET}")
-            print(f"|   {TEXT_YELLOW}{test.expression} != {TEXT_RED}{test.answer[0]} {TEXT_RED}{RESET}")
-            print(f"|   {TEXT_RED}{result} is not correct, error: {err}{RESET}")
+            print(f"{BACK_RED}[{test_number}. Test failed]{RESET}")
+            print(f"expression . . . | {TEXT_YELLOW}{test.expression}{RESET} != {TEXT_YELLOW}{test.answer[0]}{RESET}")
+            print(f"category . . . . | {test.description}")
+            print(f"solver . . . . . | {TEXT_RED}{result}{RESET}")
+            print(f"error  . . . . . | {TEXT_RED}{err}{RESET}")
 
     percent_passed = pretty_percent(tests_passed, total_tests)
 
