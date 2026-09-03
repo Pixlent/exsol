@@ -1,8 +1,7 @@
+import math
 from collections.abc import Callable
 from decimal import Decimal, InvalidOperation
-from operator import contains
-from typing import Any, NamedTuple
-import math
+from typing import NamedTuple
 
 SPECIAL_TOKENS = ["(", ")"]
 
@@ -51,12 +50,6 @@ def tokenize(input: str)-> tuple[list[str] | None, str | None]:
     if buffer:
         tokens.append(buffer)
     return tokens, None
-
-def print_tokens(tokens: list[str]):
-    print("\033[31m=\033[0m", end="")
-    for token in tokens:
-        print(f"\033[31m{token} \033[0m", end="")
-    print()
 
 class Operator(NamedTuple):
     precedence: int
