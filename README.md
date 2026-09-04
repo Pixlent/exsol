@@ -1,7 +1,7 @@
 
 # Exsol.py
 
-An **Ex**pression **sol**ver that takes PEMDAS and parentheses into account and includes the following operators with more to come: addition, subtraction, multiplication, division, modulo, exponentiation, factorial and negation.
+An **Ex**pression **sol**ver that takes PEMDAS and parentheses into account and includes the following operators with more to come: addition, subtraction, multiplication, division, modulo, exponentiation, factorial and negation. It has passed all 191 tests I've written for it, and is quite stable, however I do miss implicit multiplication that I haven't implemented yet.
 ## Usage/Examples
 Below is the "example.py" file attached to the repo that showcases how you can utilize the library. You can simply copy the "exsol.py" file into your project and import it. 
 ```python
